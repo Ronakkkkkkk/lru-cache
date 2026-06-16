@@ -98,7 +98,7 @@ The system is composed of two tightly coupled components:
 ### Data Flow
 
 ```
-Client Request → Cache Interface → Index Layer + Eviction Layer → Updated State
+Client Request → Cache Interface → Mutex Lock → Index Layer + Eviction Layer → Metrics → Updated State
 ```
 
 ```
@@ -110,6 +110,10 @@ Client Request → Cache Interface → Index Layer + Eviction Layer → Updated 
         │  LRU Cache  │
         └──────┬──────┘
                │
+        ┌──────▼──────┐
+        │  std::mutex  │  ← acquires lock before any read/write
+        └──────┬───────┘
+               │
        ┌───────┴────────┐
        ▼                ▼
    Hash Map       Doubly Linked List
@@ -119,6 +123,11 @@ Client Request → Cache Interface → Index Layer + Eviction Layer → Updated 
        │          front            back
        └──────────────┘
          synchronized
+               │
+        ┌──────▼──────────────┐
+        │   Metrics Tracker    │  ← get() increments hits or misses
+        │  hits / misses / rate│
+        └─────────────────────┘
 ```
 
 ---
