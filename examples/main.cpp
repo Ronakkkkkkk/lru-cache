@@ -21,5 +21,7 @@ int main() {
 
     std::cout << "Get (1): " << cache.get(1) << "\n"; // should be 10
 
+    cache.printStats();
+
     return 0;
 }

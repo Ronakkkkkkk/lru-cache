@@ -7,11 +7,14 @@ A clean, efficient **Least Recently Used (LRU) Cache** in C++ achieving **O(1)**
 ## Table of Contents
 
 - [Overview](#overview)
+- [Features](#features)
 - [How It Works](#how-it-works)
 - [Architecture](#architecture)
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
 - [Usage & Example](#usage--example)
+- [Cache Metrics](#cache-metrics)
+- [Benchmark](#benchmark)
 - [Complexity](#complexity)
 - [Tech Stack](#tech-stack)
 - [Key Takeaways](#key-takeaways)
@@ -22,6 +25,22 @@ A clean, efficient **Least Recently Used (LRU) Cache** in C++ achieving **O(1)**
 ## Overview
 
 An LRU Cache is a fixed-capacity data structure that automatically evicts the **least recently used** item when the cache reaches capacity. This implementation demonstrates core systems concepts including caching strategy, memory management, and efficient data structure design — commonly seen in operating systems, databases, and system design interviews.
+
+---
+
+## Features
+
+- O(1) get operation
+- O(1) put operation
+- Automatic LRU eviction
+- Custom doubly linked list implementation
+- Hash map based indexing
+- Thread-safe cache operations using `std::mutex`
+- Cache performance metrics (hits, misses, hit rate)
+- Unit test suite
+- Benchmarking utility
+- Proper memory cleanup via destructor
+- CMake build system
 
 ---
 
@@ -106,16 +125,18 @@ Client Request → Cache Interface → Index Layer + Eviction Layer → Updated 
 
 ## Project Structure
 
-```
+```text
 lru-cache/
 ├── include/
-│   └── LRUCache.h        # Class declaration
+│   └── LRUCache.h
 ├── src/
-│   └── LRUCache.cpp      # Core implementation
+│   └── LRUCache.cpp
 ├── examples/
-│   └── main.cpp          # Usage examples
+│   └── main.cpp
 ├── tests/
-│   └── test_lru.cpp      # Unit tests
+│   └── test_lru.cpp
+├── benchmarks/
+│   └── benchmark.cpp
 ├── CMakeLists.txt
 ├── LICENSE
 ├── README.md
@@ -176,6 +197,41 @@ Get (1): 10
 
 ---
 
+## Cache Metrics
+
+The cache tracks runtime statistics:
+
+- Cache Hits
+- Cache Misses
+- Hit Rate
+
+Example:
+
+```text
+--- Cache Stats ---
+Hits   : 3
+Misses : 1
+Hit Rate: 0.75
+```
+
+---
+
+## Benchmark
+
+A simple benchmark is included to measure cache throughput.
+
+Example run:
+
+```text
+Operations: 200000
+Time: 24 ms
+Ops/sec: 8.33e+06
+```
+
+This demonstrates millions of cache operations per second while maintaining O(1) access characteristics.
+
+---
+
 ## Complexity
 
 | Operation | Time Complexity | Space Complexity |
@@ -212,19 +268,30 @@ Ensures memory remains bounded under constrained resources.
 
 ## Tech Stack
 
-- **Language:** Modern C++ (C++17 recommended)
-- **Data Structures:** `std::unordered_map`, custom doubly linked list
-- **Build System:** CMake
-- **Concepts:** Cache design, pointer manipulation, memory management
+- Language: C++17
+- Data Structures:
+  - `std::unordered_map`
+  - Custom Doubly Linked List
+- Concurrency:
+  - `std::mutex`
+- Build System:
+  - CMake
+- Testing:
+  - Custom unit tests
+- Benchmarking:
+  - Performance measurement utility
 
 ---
 
 ## Key Takeaways
 
-- Combines hashing and linked list to achieve constant-time cache operations
-- Demonstrates a real-world eviction policy used in CPUs, browsers, and databases
-- Clean separation of concerns via header/source split
-- Low-level memory management with raw pointers — no external dependencies
+- Achieves O(1) cache operations through combined hash map and linked list design
+- Implements real-world LRU eviction policy
+- Supports thread-safe access using mutex locking
+- Includes cache performance metrics and monitoring
+- Provides unit tests and benchmarking utilities
+- Demonstrates manual memory management and resource cleanup
+- Mirrors concepts used in operating systems, databases, browsers, and distributed caches
 
 ---
 

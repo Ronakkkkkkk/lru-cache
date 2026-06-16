@@ -1,5 +1,6 @@
 #include "LRUCache.h"
 #include <mutex>
+
 // ---------------- Node constructor ----------------
 LRUCache::Node::Node(int k, int v) {
     key = k;
@@ -51,14 +52,15 @@ LRUCache::Node* LRUCache::removeLRU() {
 int LRUCache::get(int key) {
     std::lock_guard<std::mutex> lock(mtx);
 
-    if (cache.find(key) == cache.end())
+    auto it = cache.find(key);
+    if (it == cache.end()) {
+        misses++;
         return -1;
+    }
 
-    Node* node = cache[key];
-
-    moveToFront(node);
-
-    return node->value;
+    hits++;
+    moveToFront(it->second);
+    return it->second->value;
 }
 
 // ---------------- PUT operation ----------------
@@ -81,4 +83,25 @@ void LRUCache::put(int key, int value) {
     Node* node = new Node(key, value);
     addToFront(node);
     cache[key] = node;
+}
+
+// ---------------- STATS ----------------
+void LRUCache::printStats() {
+    std::cout << "\n--- Cache Stats ---\n";
+    std::cout << "Hits   : " << hits << "\n";
+    std::cout << "Misses : " << misses << "\n";
+    std::cout << "Hit Rate: "
+              << (hits + misses == 0 ? 0.0 : (double)hits / (hits + misses))
+              << "\n";
+}
+
+// ---------------- Destructor ----------------
+LRUCache::~LRUCache() {
+    Node* curr = head;
+
+    while (curr != nullptr) {
+        Node* next = curr->next;
+        delete curr;
+        curr = next;
+    }
 }
