@@ -1,9 +1,9 @@
 #include "LRUCache.h"
-
+#include <mutex>
 // ---------------- Node constructor ----------------
 LRUCache::Node::Node(int k, int v) {
     key = k;
-    val = v;
+    value = v;
     prev = nullptr;
     next = nullptr;
 }
@@ -49,34 +49,35 @@ LRUCache::Node* LRUCache::removeLRU() {
 
 // ---------------- GET operation ----------------
 int LRUCache::get(int key) {
-    if (cache.find(key) == cache.end()) {
+    std::lock_guard<std::mutex> lock(mtx);
+
+    if (cache.find(key) == cache.end())
         return -1;
-    }
 
     Node* node = cache[key];
+
     moveToFront(node);
 
-    return node->val;
+    return node->value;
 }
 
 // ---------------- PUT operation ----------------
 void LRUCache::put(int key, int value) {
-    // If key already exists, update and move to front
+    std::lock_guard<std::mutex> lock(mtx);
+
     if (cache.find(key) != cache.end()) {
         Node* node = cache[key];
-        node->val = value;
+        node->value = value;
         moveToFront(node);
         return;
     }
 
-    // If capacity full, remove LRU
     if ((int)cache.size() == capacity) {
         Node* lru = removeLRU();
         cache.erase(lru->key);
         delete lru;
     }
 
-    // Insert new node
     Node* node = new Node(key, value);
     addToFront(node);
     cache[key] = node;

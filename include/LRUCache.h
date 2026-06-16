@@ -1,12 +1,15 @@
 #pragma once
+
 #include <unordered_map>
+#include <mutex>
 
 class LRUCache {
 private:
     struct Node {
-        int key, val;
+        int key, value;
         Node* prev;
         Node* next;
+
         Node(int k, int v);
     };
 
@@ -15,6 +18,8 @@ private:
 
     Node* head;
     Node* tail;
+
+    std::mutex mtx;
 
     void addToFront(Node* node);
     void removeNode(Node* node);

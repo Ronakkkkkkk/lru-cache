@@ -27,23 +27,60 @@ An LRU Cache is a fixed-capacity data structure that automatically evicts the **
 
 ## How It Works
 
-The cache combines two data structures:
+The cache maintains two synchronized data structures:
 
-- **`unordered_map`** — maps each key to its corresponding list node for O(1) lookup
-- **Doubly Linked List** — tracks usage order; most recently used nodes sit at the front, least recently used at the back
+### 1. Access Path (Hash Map)
+- Maps `key → node pointer`
+- Eliminates search time
 
-### `get(key)`
-- Key exists → move its node to the front, return value
-- Key missing → return `-1`
+### 2. Usage Tracking (Doubly Linked List)
+- Every access updates node position
+- Ensures most recently used items are always at the front
 
-### `put(key, value)`
-- Key exists → update value, move node to front
-- Cache full → remove the node at the back (LRU), insert new node at front
-- Otherwise → insert new node at front
+### Operations
+
+#### GET
+- If key exists:
+  - Move node to front (mark as recently used)
+  - Return value
+- Else:
+  - Return -1
+
+#### PUT
+- If key exists:
+  - Update value
+  - Move node to front
+- If capacity is full:
+  - Remove node from tail (LRU eviction)
+  - Delete from hash map
+- Insert new node at front
 
 ---
 
 ## Architecture
+
+This cache is designed as an in-memory eviction system similar to those used in:
+- database buffer caches
+- Redis-like in-memory storage systems
+- operating system page replacement strategies
+
+### Internal Design
+
+The system is composed of two tightly coupled components:
+
+- **Hash Map (Index Layer)**
+  - Provides O(1) access to cache nodes via key lookup
+
+- **Doubly Linked List (Eviction Layer)**
+  - Maintains access order
+  - Front → Most Recently Used
+  - Back → Least Recently Used (eviction target)
+
+### Data Flow
+
+```
+Client Request → Cache Interface → Index Layer + Eviction Layer → Updated State
+```
 
 ```
          Client Code
@@ -58,6 +95,11 @@ The cache combines two data structures:
        ▼                ▼
    Hash Map       Doubly Linked List
   (O(1) lookup)   (recency ordering)
+       │                │
+       │         [MRU] ←→ ... ←→ [LRU]
+       │          front            back
+       └──────────────┘
+         synchronized
 ```
 
 ---
@@ -72,7 +114,10 @@ lru-cache/
 │   └── LRUCache.cpp      # Core implementation
 ├── examples/
 │   └── main.cpp          # Usage examples
+├── tests/
+│   └── test_lru.cpp      # Unit tests
 ├── CMakeLists.txt
+├── LICENSE
 ├── README.md
 └── .gitignore
 ```
@@ -83,7 +128,7 @@ lru-cache/
 
 ### Prerequisites
 
-- C++11 or later
+- Modern C++ (C++17 recommended)
 - CMake 3.10+
 
 ### Build
@@ -133,19 +178,41 @@ Get (1): 10
 
 ## Complexity
 
-| Operation | Time | Space |
-|-----------|------|-------|
-| `get`     | O(1) | —     |
-| `put`     | O(1) | —     |
-| Overall   | —    | O(n)  |
+| Operation | Time Complexity | Space Complexity |
+|-----------|----------------|------------------|
+| get       | O(1)           | O(1)             |
+| put       | O(1)           | O(1)             |
 
-`n` = cache capacity
+Overall space usage is O(n), where n is cache capacity.
+
+---
+
+## System Design Perspective
+
+This implementation reflects key design principles used in production systems:
+
+### 1. O(1) Efficiency Design
+Trade memory for speed using dual data structures.
+
+### 2. Eviction Policy (LRU)
+Ensures memory remains bounded under constrained resources.
+
+### 3. Separation of Concerns
+- Indexing (Hash Map)
+- Ordering (Linked List)
+- API Layer (Cache Interface)
+
+### 4. Real-world Applications
+- CPU cache memory
+- Database query caching
+- Web browser caching
+- Distributed cache systems (Redis-like behavior)
 
 ---
 
 ## Tech Stack
 
-- **Language:** C++11
+- **Language:** Modern C++ (C++17 recommended)
 - **Data Structures:** `std::unordered_map`, custom doubly linked list
 - **Build System:** CMake
 - **Concepts:** Cache design, pointer manipulation, memory management
